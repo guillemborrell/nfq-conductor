@@ -13,8 +13,12 @@ setup(
         'nfq.conductor'
         ],
     zip_safe=False,
-    install_requires=[nfq-logwrapper, psutil],
+    install_requires=['nfq-logwrapper', 'psutil', 'zmq', 'tornado'],
     include_package_data=True,
     setup_requires=[],
-    tests_require=[]
+    tests_require=[],
+    entry_points={
+        'console_scripts': ['nfq-conductor=nfq.conductor.server:run',
+                            'nfq-conductor-daemon=nfq.conductor.daemon:run']
+        }
     )
