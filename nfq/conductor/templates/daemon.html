@@ -9,6 +9,15 @@
 <ul>
     <li>Number of cores: {{ cpu_count }}</li>
 </ul>
+
+<h3>Send process</h3>
+<form action="/daemon/{{ daemon.uuid }}" method="post">
+    <input name="ip" type="hidden" value="{{ daemon.ip }}">
+    <input name="port" type="hidden" value="{{ daemon.port }}">
+    <input name="command" type="text">
+    <input type="submit" value="Send">
+</form>
+
 <h3>Processes</h3>
 {% if processes %}
 <ul>
@@ -18,12 +27,5 @@
 </ul>
 {% end %}
 
-<h3>Send process</h3>
-<form action="/daemon/{{ daemon.uuid }}" method="post">
-    <input name="ip" type="hidden" value="{{ daemon.ip }}">
-    <input name="port" type="hidden" value="{{ daemon.port }}">
-    <input name="command" type="text">
-    <input type="submit" value="Send">
-</form>
 </body>
 </html>

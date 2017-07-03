@@ -117,7 +117,7 @@ def make_app():
         (r'/api/active_last/([0-9]+)', RestActiveHandler),
         (r'/api/last/([0-9]+)', RestLastHandler),
         (r'/api/page/([0-9]+)/count/([0-9]+)', RestPageHandler),
-        (r'/daemons', DaemonsHandler),
+        (r'/conductor', DaemonsHandler),
         (r'/daemon/(.+)', DaemonHandler),
         (r'/(favicon.ico)', web.StaticFileHandler,
          {'path': os.path.join(root_path, 'img', 'favicon.ico')}),

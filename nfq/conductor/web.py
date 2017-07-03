@@ -16,6 +16,7 @@
 
 
 import os
+import json
 import logging
 from tornado import web, template, httpclient
 from nfq.logwrapper.db import session
@@ -68,8 +69,14 @@ class DaemonsHandler(web.RequestHandler):
 
         session.commit()
 
+        daemon_info = list()
+        for daemon in checked_daemons:
+            usage_str = get_from_daemon(daemon.ip, daemon.port, 'usage')
+            cpu_usage = json.loads(usage_str)
+            daemon_info.append((daemon, cpu_usage))
+
         self.write(
-            loader.load("daemons.html").generate(daemons=checked_daemons)
+            loader.load("daemons.html").generate(daemons=daemon_info)
         )
 
 

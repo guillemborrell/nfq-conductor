@@ -23,6 +23,7 @@ import datetime
 import psutil
 import logging
 import subprocess
+import json
 
 from tornado.options import define, options
 from uuid import uuid4
@@ -44,6 +45,21 @@ class CpuCountHandler(tornado.web.RequestHandler):
     def get(self):
         self.write(str(psutil.cpu_count()))
 
+class UsageHandler(tornado.web.RequestHandler):
+    def get(self):
+        usage_str = psutil.cpu_times_percent()
+        usage = dict(
+            user=usage_str.user,
+            system=usage_str.system,
+            nice=usage_str.nice,
+            iowait=usage_str.iowait,
+            irq=usage_str.irq,
+            softirq=usage_str.softirq,
+            steal=usage_str.steal,
+            guest=usage_str.guest,
+            guest_nice=usage_str.guest_nice
+            )
+        self.write(json.dumps(usage))
 
 class ProcessHandler(tornado.web.RequestHandler):
     def post(self, *args, **kwargs):
@@ -89,6 +105,7 @@ def run():
     application = tornado.web.Application([
         (r"/", MainHandler),
         (r"/cpu_count", CpuCountHandler),
+        (r"/usage", UsageHandler),
         (r"/send_process", ProcessHandler),
         (r"/kill", KillHandler)
     ])

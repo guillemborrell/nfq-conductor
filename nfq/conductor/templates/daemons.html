@@ -9,7 +9,8 @@
 {% if daemons %}
 <ul>
     {% for daemon in daemons %}
-    <li><a href="/daemon/{{ daemon.uuid }}">{{ daemon.uuid }}</a>: IP ({{ daemon.ip }}) Port ({{daemon.port}})</li>
+    <li><a href="/daemon/{{ daemon[0].uuid }}">{{ daemon[0].uuid }}
+      </a>: IP ({{ daemon[0].ip }}) Port ({{daemon[0].port}}) CPU:{{ daemon[1]['user'] }}%</li>
     {% end %}
 </ul>
 {% end %}
