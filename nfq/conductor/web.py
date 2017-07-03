@@ -25,17 +25,16 @@ root_path = os.path.abspath(os.path.join(os.path.realpath(__file__), os.path.par
 loader = template.Loader(os.path.join(root_path, 'templates'))
 
 
-def get_cpu_count(ip, port):
+def get_from_daemon(ip, port, call):
     http_client = httpclient.HTTPClient()
     try:
-        response = http_client.fetch("http://{}:{}/cpu_count".format(
-            ip, port
+        response = http_client.fetch("http://{}:{}/{}".format(
+            ip, port, call
         ))
-        rval = response.body
+        rval = response.body.decode()
     except httpclient.HTTPError as e:
         # HTTPError is raised for non-200 responses; the response
         # can be found in e.response.
-
         rval = 'NA'
     except Exception as e:
         # Other errors are possible, such as IOError.
@@ -51,33 +50,15 @@ class DaemonsHandler(web.RequestHandler):
         checked_daemons = list()
 
         for daemon in daemons:
-            # Check if daemon is active:
-            http_client = httpclient.HTTPClient()
-            try:
-                response = http_client.fetch("http://{}:{}".format(
-                    daemon.ip, daemon.port
-                ))
-                logging.info(response.body)
-                logging.info(daemon.uuid)
-                if response.body.decode() == daemon.uuid:
-                    checked_daemons.append(daemon)
-                else:
-                    logging.info('Deamon {} is inactive'.format(daemon.uuid))
-                    daemon.active = False
-            except httpclient.HTTPError as e:
-                # HTTPError is raised for non-200 responses; the response
-                # can be found in e.response.
-                print("Error: " + str(e))
-                daemon.active = False
-                logging.info('Deamon {} is inactive'.format(daemon.uuid))
-            except Exception as e:
-                # Other errors are possible, such as IOError.
-                print("Error: " + str(e))
-                http_client.close()
-                daemon.active = False
-                logging.info('Deamon {} is inactive'.format(daemon.uuid))
+            key = get_from_daemon(daemon.ip, daemon.port, '')
 
-            session.commit()
+            if key == daemon.uuid:
+                checked_daemons.append(daemon)
+            else:
+                logging.info('Daemon {} is inactive'.format(daemon.uuid))
+                daemon.active = False
+
+        session.commit()
 
         self.write(
             loader.load("daemons.html").generate(daemons=checked_daemons)
@@ -89,6 +70,8 @@ class DaemonHandler(web.RequestHandler):
         daemon = session.query(Daemon).filter(Daemon.uuid == uuid).one_or_none()
         self.write(
             loader.load("daemon.html").generate(daemon=daemon,
-                                                cpu_count=get_cpu_count(
-                                                    daemon.ip, daemon.port))
+                                                cpu_count=get_from_daemon(
+                                                    daemon.ip,
+                                                    daemon.port,
+                                                    'cpu_count'))
         )
