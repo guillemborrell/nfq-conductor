@@ -63,7 +63,9 @@ def process_log(messages):
                 when=datetime.strptime(parsed['when'], "%Y-%m-%dT%H:%M:%S.%f"),
                 host=sub_parsed['host'],
                 source=parsed['source'],
-                label=sub_parsed['label']
+                label=sub_parsed['label'],
+                command=sub_parsed['command'],
+                running=True
             )
             session.add(process)
             logging.info('Added process {}'.format(sub_parsed['label']))

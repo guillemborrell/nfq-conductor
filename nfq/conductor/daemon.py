@@ -22,6 +22,7 @@ import zmq
 import datetime
 import psutil
 import logging
+import subprocess
 
 from tornado.options import define, options
 from uuid import uuid4
@@ -42,6 +43,22 @@ class MainHandler(tornado.web.RequestHandler):
 class CpuCountHandler(tornado.web.RequestHandler):
     def get(self):
         self.write(str(psutil.cpu_count()))
+
+
+class ProcessHandler(tornado.web.RequestHandler):
+    def post(self, *args, **kwargs):
+        command = 'nfq-runner --command "{}" --collector {} --host {}'.format(
+            self.request.body.decode(),
+            options.collector,
+            options.uuid
+        )
+        subprocess.Popen(command, shell=True)
+        self.write(command)
+
+
+class KillHandler(tornado.web.RequestHandler):
+    def post(self, *args, **kwargs):
+        pass
 
 
 def run():
@@ -71,7 +88,9 @@ def run():
 
     application = tornado.web.Application([
         (r"/", MainHandler),
-        (r"/cpu_count", CpuCountHandler)
+        (r"/cpu_count", CpuCountHandler),
+        (r"/send_process", ProcessHandler),
+        (r"/kill", KillHandler)
     ])
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(options.port)

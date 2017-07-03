@@ -50,6 +50,8 @@ class Process(Base):
     host = Column(String)
     label = Column(String)
     source = Column(String)
+    command = Column(String)
+    running = Column(Boolean)
 
     def to_dict(self):
         return {
@@ -58,5 +60,6 @@ class Process(Base):
             'host': self.host,
             'when': self.when.isoformat(),
             'label': self.label,
-            'source': self.source
+            'source': self.source,
+            'command': self.command
         }

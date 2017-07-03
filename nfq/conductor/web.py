@@ -19,7 +19,7 @@ import os
 import logging
 from tornado import web, template, httpclient
 from nfq.logwrapper.db import session
-from nfq.conductor.db import Daemon
+from nfq.conductor.db import Daemon, Process
 
 root_path = os.path.abspath(os.path.join(os.path.realpath(__file__), os.path.pardir))
 loader = template.Loader(os.path.join(root_path, 'templates'))
@@ -42,6 +42,14 @@ def get_from_daemon(ip, port, call):
 
     http_client.close()
     return rval
+
+
+def post_job(ip, port, body):
+    http_client = httpclient.HTTPClient()
+    logging.info('Sending job')
+    response = http_client.fetch("http://{}:{}/send_process".format(ip, port), method='POST', body=body)
+
+    return response.body
 
 
 class DaemonsHandler(web.RequestHandler):
@@ -68,10 +76,18 @@ class DaemonsHandler(web.RequestHandler):
 class DaemonHandler(web.RequestHandler):
     def get(self, uuid):
         daemon = session.query(Daemon).filter(Daemon.uuid == uuid).one_or_none()
+        processes = session.query(Process).filter(Process.host == uuid)
         self.write(
             loader.load("daemon.html").generate(daemon=daemon,
+                                                processes=processes,
                                                 cpu_count=get_from_daemon(
                                                     daemon.ip,
                                                     daemon.port,
                                                     'cpu_count'))
         )
+
+    def post(self, *args, **kwargs):
+        response = post_job(self.get_argument('ip'),
+                            self.get_argument('port'),
+                            self.get_argument('command'))
+        self.write(response)

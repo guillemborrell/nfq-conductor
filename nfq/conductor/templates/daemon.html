@@ -9,5 +9,21 @@
 <ul>
     <li>Number of cores: {{ cpu_count }}</li>
 </ul>
+<h3>Processes</h3>
+{% if processes %}
+<ul>
+    {% for process in processes %}
+    <li><a href="/co/{{ process.label}}/20">{{ process.label }}</a> "{{ process.command }}", {{ process.when.isoformat() }}, {{ process.running }}</li>
+    {% end %}
+</ul>
+{% end %}
+
+<h3>Send process</h3>
+<form action="/daemon/{{ daemon.uuid }}" method="post">
+    <input name="ip" type="hidden" value="{{ daemon.ip }}">
+    <input name="port" type="hidden" value="{{ daemon.port }}">
+    <input name="command" type="text">
+    <input type="submit" value="Send">
+</form>
 </body>
 </html>
