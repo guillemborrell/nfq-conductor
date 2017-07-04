@@ -68,13 +68,13 @@ def kill_job(ip, port, pid):
 
 class DaemonsHandler(web.RequestHandler):
     def get(self):
-        daemons = session.query(Daemon).filter(Daemon.active)
+        daemons = session.query(Daemon).filter(Daemon.active).order_by(Daemon.when.desc())
         checked_daemons = list()
 
         for daemon in daemons:
             key = get_from_daemon(daemon.ip, daemon.port, '')
 
-            if key == daemon.uuid:
+            if key == daemon.uuid and daemon.uuid not in [d.uuid for d in checked_daemons]:
                 checked_daemons.append(daemon)
             else:
                 logging.info('Daemon {} is inactive'.format(daemon.uuid))
@@ -88,14 +88,18 @@ class DaemonsHandler(web.RequestHandler):
             cpu_usage = json.loads(usage_str)
             daemon_info.append((daemon, cpu_usage))
 
+        processes = session.query(Process).order_by(Process.when.desc())
+
         self.write(
-            loader.load("daemons.html").generate(daemons=daemon_info)
+            loader.load("daemons.html").generate(daemons=daemon_info,
+                                                 processes=processes)
         )
 
 
 class DaemonHandler(web.RequestHandler):
     def get(self, uuid):
-        daemon = session.query(Daemon).filter(Daemon.uuid == uuid).one_or_none()
+        daemon = session.query(Daemon).filter(
+            Daemon.uuid == uuid).order_by(Daemon.when.desc()).first()
         processes = [s for s in session.query(
             Process).filter(
             Process.host == uuid).order_by(

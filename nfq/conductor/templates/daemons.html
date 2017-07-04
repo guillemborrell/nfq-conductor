@@ -15,5 +15,16 @@
 </ul>
 {% end %}
 
+<h3>Processes</h3>
+{% if processes %}
+<ul>
+  {% for process in processes %}
+  <li><strong>{{ process.command }}</strong>: {{ process.when }},
+    <a href="/daemon/{{ process.host }}">{{ process.host }}</a>
+  </li>
+  {% end %}
+</ul>
+{% end %}
+
 </body>
 </html>
