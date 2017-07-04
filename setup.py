@@ -5,7 +5,7 @@ from setuptools import setup
 setup(
     name="nfq-conductor",
     description="NFQ Solutions process manager",
-    version="0.1.2",
+    version="0.2",
     author="NFQ Solutions",
     author_email="solutions@nfq.es",
     packages=[
