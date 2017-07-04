@@ -59,7 +59,7 @@ def post_job(ip, port, body):
 
 def kill_job(ip, port, pid):
     http_client = httpclient.HTTPClient()
-    logging.info('Sending job')
+    logging.info('Killing job')
     response = http_client.fetch(
         "http://{}:{}/kill/{}".format(ip, port, pid))
 
@@ -88,7 +88,7 @@ class DaemonsHandler(web.RequestHandler):
             cpu_usage = json.loads(usage_str)
             daemon_info.append((daemon, cpu_usage))
 
-        processes = session.query(Process).order_by(Process.when.desc())
+        processes = session.query(Process).filter(Process.running).order_by(Process.when.desc())
 
         self.write(
             loader.load("daemons.html").generate(daemons=daemon_info,
@@ -145,4 +145,34 @@ class DaemonHandler(web.RequestHandler):
 
         self.write(
             loader.load("posted.html").generate(message=response)
+        )
+
+
+class ResetHandler(web.RequestHandler):
+    def get(self):
+        processes = session.query(Process).filter(Process.running)
+        
+        for proc in processes:
+            # Check if the wrapped process is running
+            daemon = session.query(Daemon).filter(
+                Daemon.uuid == proc.host).order_by(
+                Daemon.when.desc()).first()
+
+            running = get_from_daemon(
+                daemon.ip,
+                daemon.port,
+                'is_running/{}'.format(proc.process))
+
+            if running == 'True':
+                logging.info('Proccess {} stopped'.format(proc.label))
+                proc.running = False
+                response = kill_job(daemon.ip,
+                                    daemon.port,
+                                    '-'.join([str(proc.wrapped),
+                                              str(proc.process)])
+                                    )
+
+        session.commit()
+        self.write(
+            loader.load("posted.html").generate(message='Cluster reset')
         )
