@@ -61,6 +61,7 @@ class UsageHandler(tornado.web.RequestHandler):
             )
         self.write(json.dumps(usage))
 
+
 class ProcessHandler(tornado.web.RequestHandler):
     def post(self, *args, **kwargs):
         command = 'nfq-runner --command "{}" --collector {} --host {}'.format(
@@ -73,8 +74,15 @@ class ProcessHandler(tornado.web.RequestHandler):
 
 
 class KillHandler(tornado.web.RequestHandler):
-    def post(self, *args, **kwargs):
-        pass
+    def get(self, pid):
+        wrapped, process = pid.split('-')
+        subprocess.Popen('kill -9 {}'.format(int(process)), shell=True)
+        subprocess.Popen('kill -2 {}'.format(int(wrapped)), shell=True)
+
+
+class RunningHandler(tornado.web.RequestHandler):
+    def get(self, pid):
+        self.write(str(psutil.pid_exists(int(pid))))
 
 
 def run():
@@ -107,7 +115,8 @@ def run():
         (r"/cpu_count", CpuCountHandler),
         (r"/usage", UsageHandler),
         (r"/send_process", ProcessHandler),
-        (r"/kill", KillHandler)
+        (r"/kill/(.+)", KillHandler),
+        (r"/is_running/([0-9]+)", RunningHandler)
     ])
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(options.port)

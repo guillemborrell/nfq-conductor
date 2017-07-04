@@ -21,6 +21,7 @@ import logging
 from tornado import web, template, httpclient
 from nfq.logwrapper.db import session
 from nfq.conductor.db import Daemon, Process
+from operator import attrgetter
 
 root_path = os.path.abspath(os.path.join(os.path.realpath(__file__), os.path.pardir))
 loader = template.Loader(os.path.join(root_path, 'templates'))
@@ -48,7 +49,19 @@ def get_from_daemon(ip, port, call):
 def post_job(ip, port, body):
     http_client = httpclient.HTTPClient()
     logging.info('Sending job')
-    response = http_client.fetch("http://{}:{}/send_process".format(ip, port), method='POST', body=body)
+    response = http_client.fetch(
+        "http://{}:{}/send_process".format(ip, port),
+        method='POST',
+        body=body)
+
+    return response.body
+
+
+def kill_job(ip, port, pid):
+    http_client = httpclient.HTTPClient()
+    logging.info('Sending job')
+    response = http_client.fetch(
+        "http://{}:{}/kill/{}".format(ip, port, pid))
 
     return response.body
 
@@ -83,7 +96,27 @@ class DaemonsHandler(web.RequestHandler):
 class DaemonHandler(web.RequestHandler):
     def get(self, uuid):
         daemon = session.query(Daemon).filter(Daemon.uuid == uuid).one_or_none()
-        processes = session.query(Process).filter(Process.host == uuid)
+        processes = [s for s in session.query(
+            Process).filter(
+            Process.host == uuid).order_by(
+            Process.when
+        )]
+        processes = [p for p in reversed(sorted(processes,
+                                                key=attrgetter('running')))]
+
+        for proc in processes:
+            if proc.running:
+                # Check if the wrapped process is running
+                running = get_from_daemon(
+                    daemon.ip,
+                    daemon.port,
+                    'is_running/{}'.format(proc.process))
+                if running == 'False':
+                    logging.info('Proccess {} stopped'.format(proc.label))
+                    proc.running = False
+
+        session.commit()
+
         self.write(
             loader.load("daemon.html").generate(daemon=daemon,
                                                 processes=processes,
@@ -94,7 +127,16 @@ class DaemonHandler(web.RequestHandler):
         )
 
     def post(self, *args, **kwargs):
-        response = post_job(self.get_argument('ip'),
-                            self.get_argument('port'),
-                            self.get_argument('command'))
+        if self.get_argument('command', default=None):
+            logging.info('Posting job {}'.format(self.get_argument('command')))
+            response = post_job(self.get_argument('ip'),
+                                self.get_argument('port'),
+                                self.get_argument('command'))
+
+        elif self.get_argument('pid', default=None):
+            logging.info('Killing pid {}'.format(self.get_argument('pid')))
+            response = kill_job(self.get_argument('ip'),
+                                self.get_argument('port'),
+                                self.get_argument('pid'))
+
         self.write(response)

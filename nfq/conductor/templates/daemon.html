@@ -22,7 +22,24 @@
 {% if processes %}
 <ul>
     {% for process in processes %}
-    <li><a href="/co/{{ process.label}}/20">{{ process.label }}</a> "{{ process.command }}", {{ process.when.isoformat() }}, {{ process.running }}</li>
+    <li><a href="/co/{{ process.label}}/20">{{ process.label }}</a>
+        "{{ process.command }}", {{ process.when.isoformat() }}, {{ process.running }}
+        {% if process.running %}
+        <form action="/daemon/{{ daemon.uuid }}" method="post">
+            <input name="ip" type="hidden" value="{{ daemon.ip }}">
+            <input name="port" type="hidden" value="{{ daemon.port }}">
+            <input name="pid" type="hidden" value="{{ process.wrapped }}-{{ process.process }}">
+            <input type="submit" value="Kill">
+        </form>
+        {% else %}
+        <form action="/daemon/{{ daemon.uuid }}" method="post">
+            <input name="ip" type="hidden" value="{{ daemon.ip }}">
+            <input name="port" type="hidden" value="{{ daemon.port }}">
+            <input name="command" type="hidden" value="{{ process.command }}">
+            <input type="submit" value="Relaunch">
+        </form>
+        {% end %}
+    </li>
     {% end %}
 </ul>
 {% end %}
