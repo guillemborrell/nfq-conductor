@@ -69,6 +69,7 @@ class ProcessHandler(tornado.web.RequestHandler):
             options.collector,
             options.uuid
         )
+        logging.info(command)
         subprocess.Popen(command, shell=True)
         self.write(command)
 
@@ -93,8 +94,13 @@ def run():
 
     context = zmq.Context()
     socket = context.socket(zmq.PUSH)
-    socket.connect(options.collector)
+    logging.info('Connecting to {}'.format(options.collector))
 
+    socket.connect(options.collector)
+    
+    logging.info('Addr: {}:{}'.format(str(ip), str(options.port)))
+
+    logging.info('Preparing configuration message...')
     socket.send_json({
         'source': options.uuid,
         'when': datetime.datetime.now().isoformat(),
