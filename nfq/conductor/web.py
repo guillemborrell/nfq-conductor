@@ -139,4 +139,6 @@ class DaemonHandler(web.RequestHandler):
                                 self.get_argument('port'),
                                 self.get_argument('pid'))
 
-        self.write(response)
+        self.write(
+            loader.load("posted.html").generate(message=response)
+        )
