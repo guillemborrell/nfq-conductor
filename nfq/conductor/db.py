@@ -17,7 +17,7 @@
 # Configuration is loaded at import time. Do not touch this
 
 from nfq.logwrapper.db import Base
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text
 
 
 class Daemon(Base):
@@ -62,4 +62,18 @@ class Process(Base):
             'label': self.label,
             'source': self.source,
             'command': self.command
+        }
+
+
+class Configuration(Base):
+    __tablename__ = 'configurations'
+
+    id = Column(Integer, primary_key=True)
+    when = Column(DateTime)
+    config = Column(Text)
+
+    def to_dict(self):
+        return {
+            'when': self.when.isoformat(),
+            'config': self.config
         }

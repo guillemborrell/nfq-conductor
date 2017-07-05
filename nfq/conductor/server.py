@@ -33,6 +33,7 @@ from nfq.logwrapper.config import root_path
 from nfq.logwrapper.web import IndexHandler, LastLogsHandler, ComponentHandler
 from nfq.logwrapper.web import RestLastHandler, RestActiveHandler, RestPageHandler
 from nfq.conductor.web import DaemonsHandler, DaemonHandler, ResetHandler
+from nfq.conductor.web import ConfigHandler
 from nfq.logwrapper.ws import WSHandler
 
 ioloop.install()
@@ -119,6 +120,7 @@ def make_app():
         (r'/api/page/([0-9]+)/count/([0-9]+)', RestPageHandler),
         (r'/conductor', DaemonsHandler),
         (r'/reset', ResetHandler),
+        (r'/config', ConfigHandler),
         (r'/daemon/(.+)', DaemonHandler),
         (r'/(favicon.ico)', web.StaticFileHandler,
          {'path': os.path.join(root_path, 'img', 'favicon.ico')}),
@@ -126,7 +128,7 @@ def make_app():
          {'path': os.path.join(root_path, 'css')}),
         (r'/js/(.*)', web.StaticFileHandler,
          {'path': os.path.join(root_path, 'js')})
-    ])
+    ], autoreload=True)  # Remove
 
 
 def run():

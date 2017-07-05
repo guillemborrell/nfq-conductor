@@ -123,7 +123,7 @@ def run():
         (r"/send_process", ProcessHandler),
         (r"/kill/(.+)", KillHandler),
         (r"/is_running/([0-9]+)", RunningHandler)
-    ])
+    ], autoreload=True)
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(options.port)
     tornado.ioloop.IOLoop.current().start()

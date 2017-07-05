@@ -18,9 +18,10 @@
 import os
 import json
 import logging
+import datetime
 from tornado import web, template, httpclient
 from nfq.logwrapper.db import session
-from nfq.conductor.db import Daemon, Process
+from nfq.conductor.db import Daemon, Process, Configuration
 from operator import attrgetter
 
 root_path = os.path.abspath(os.path.join(os.path.realpath(__file__), os.path.pardir))
@@ -66,22 +67,28 @@ def kill_job(ip, port, pid):
     return response.body
 
 
+def active_daemons(session):
+    daemons = session.query(Daemon).filter(Daemon.active).order_by(
+        Daemon.when.desc())
+    checked_daemons = list()
+
+    for daemon in daemons:
+        key = get_from_daemon(daemon.ip, daemon.port, '')
+
+        if key == daemon.uuid and daemon.uuid not in [d.uuid for d in
+                                                      checked_daemons]:
+            checked_daemons.append(daemon)
+        else:
+            logging.info('Daemon {} is inactive'.format(daemon.uuid))
+            daemon.active = False
+
+    session.commit()
+    return checked_daemons
+
+
 class DaemonsHandler(web.RequestHandler):
     def get(self):
-        daemons = session.query(Daemon).filter(Daemon.active).order_by(Daemon.when.desc())
-        checked_daemons = list()
-
-        for daemon in daemons:
-            key = get_from_daemon(daemon.ip, daemon.port, '')
-
-            if key == daemon.uuid and daemon.uuid not in [d.uuid for d in checked_daemons]:
-                checked_daemons.append(daemon)
-            else:
-                logging.info('Daemon {} is inactive'.format(daemon.uuid))
-                daemon.active = False
-
-        session.commit()
-
+        checked_daemons = active_daemons(session)
         daemon_info = list()
         for daemon in checked_daemons:
             usage_str = get_from_daemon(daemon.ip, daemon.port, 'usage')
@@ -175,4 +182,79 @@ class ResetHandler(web.RequestHandler):
         session.commit()
         self.write(
             loader.load("posted.html").generate(message='Cluster reset')
+        )
+
+
+class ConfigHandler(web.RequestHandler):
+    def get(self):
+        self.write(
+            loader.load("config.html").generate()
+        )
+
+    def post(self):
+        try:
+            file = self.request.files['config_file'][0]
+        except KeyError:
+            logging.info('No configuration file provided')
+            self.write(
+                loader.load("posted.html").generate(message='No config file')
+            )
+            return
+
+        logging.info('Got configuration file')
+
+        config = Configuration(
+            when=datetime.datetime.now(),
+            config=file['body']
+        )
+
+        session.add(config)
+
+        # Get the active daemons
+        daemons = active_daemons(session)
+        cluster_config = json.loads(file['body'])
+
+        for i, daemon in enumerate(daemons):
+            pass
+
+        if daemons:
+            logging.info('{} active daemons'.format(i+1))
+            if len(cluster_config) > i+1:
+                self.write(
+                    loader.load("posted.html").generate(
+                        message=str("Not enough running daemons"))
+                )
+                return
+
+        else:
+            logging.warning('No active daemons')
+            self.write(
+                loader.load("posted.html").generate(message='No active daemons')
+            )
+            return
+
+        daemons_mapping = {d.uuid: d for d in daemons}
+
+        # Map jobs when the daemon is present
+        for k, v in cluster_config.copy().items():
+            if k in daemons_mapping:
+                commands = cluster_config.pop(k)
+                daemon = daemons_mapping.pop(k)
+
+                for command in commands:
+                    logging.info('Send {} to {}'.format(command, daemon.uuid))
+                    _ = post_job(daemon.ip, daemon.port, command)
+
+        # Otherwise pick random daemon.
+        for j, d in zip([k for k in cluster_config.keys()],
+                        [k for k in daemons_mapping.keys()]):
+            commands = cluster_config.pop(j)
+            daemon = daemons_mapping.pop(d)
+
+            for command in commands:
+                logging.info('Send {} to {}'.format(command, daemon.uuid))
+                _ = post_job(daemon.ip, daemon.port, command)
+
+        self.write(
+            loader.load("posted.html").generate(message='Successful')
         )
