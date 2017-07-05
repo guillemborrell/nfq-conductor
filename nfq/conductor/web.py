@@ -210,6 +210,7 @@ class ConfigHandler(web.RequestHandler):
 
         session.add(config)
 
+        # Validation and stuff
         # Get the active daemons
         daemons = active_daemons(session)
         cluster_config = json.loads(file['body'])
