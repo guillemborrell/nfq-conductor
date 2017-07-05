@@ -26,6 +26,7 @@ import subprocess
 import json
 
 from tornado.options import define, options
+from nfq.logwrapper.runner import launch
 from uuid import uuid4
 
 UUID = str(uuid4())
@@ -70,7 +71,11 @@ class ProcessHandler(tornado.web.RequestHandler):
             options.uuid
         )
         logging.info(command)
-        subprocess.Popen(command, shell=True)
+
+        launch(collector=options.collector,
+               command=self.request.body.decode(),
+               host=options.uuid)
+
         self.write(command)
 
 
