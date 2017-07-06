@@ -5,7 +5,7 @@ from setuptools import setup
 setup(
     name="nfq-conductor",
     description="NFQ Solutions process manager",
-    version="0.2",
+    version="0.2.1",
     author="NFQ Solutions",
     author_email="solutions@nfq.es",
     packages=[
@@ -19,6 +19,7 @@ setup(
     tests_require=[],
     entry_points={
         'console_scripts': ['nfq-conductor=nfq.conductor.server:run',
-                            'nfq-conductor-daemon=nfq.conductor.daemon:run']
+                            'nfq-conductor-daemon=nfq.conductor.daemon:run',
+                            'nfq-conductor-submit=nfq.conductor.submit:run']
         }
     )

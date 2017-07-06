@@ -95,7 +95,8 @@ class DaemonsHandler(web.RequestHandler):
             cpu_usage = json.loads(usage_str)
             daemon_info.append((daemon, cpu_usage))
 
-        processes = session.query(Process).filter(Process.running).order_by(Process.when.desc())
+        processes = session.query(Process).filter(Process.running).order_by(
+            Process.when.desc())
 
         self.write(
             loader.load("daemons.html").generate(daemons=daemon_info,
@@ -173,11 +174,9 @@ class ResetHandler(web.RequestHandler):
             if running == 'True':
                 logging.info('Proccess {} stopped'.format(proc.label))
                 proc.running = False
-                response = kill_job(daemon.ip,
-                                    daemon.port,
-                                    '-'.join([str(proc.wrapped),
-                                              str(proc.process)])
-                                    )
+                _ = kill_job(daemon.ip,
+                             daemon.port,
+                             '-'.join([str(proc.wrapped), str(proc.process)]))
 
         session.commit()
         self.write(
@@ -195,11 +194,17 @@ class ConfigHandler(web.RequestHandler):
         try:
             file = self.request.files['config_file'][0]
         except KeyError:
-            logging.info('No configuration file provided')
-            self.write(
-                loader.load("posted.html").generate(message='No config file')
-            )
-            return
+            logging.info('No configuration file provided, Trying the body...')
+            if self.request.body:
+                # Mocking the file if the config came from the submit script.
+                logging.info('Found body')
+                file = {'body': self.request.body}
+                logging.info('Found config in the body')
+            else:
+                self.write(
+                    loader.load("posted.html").generate(message='No config file')
+                )
+                return
 
         logging.info('Got configuration file')
 
@@ -259,3 +264,5 @@ class ConfigHandler(web.RequestHandler):
         self.write(
             loader.load("posted.html").generate(message='Successful')
         )
+
+        return

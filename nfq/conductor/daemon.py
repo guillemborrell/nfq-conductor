@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import multiprocessing
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
@@ -71,10 +72,12 @@ class ProcessHandler(tornado.web.RequestHandler):
             options.uuid
         )
         logging.info(command)
-
-        launch(collector=options.collector,
-               command=self.request.body.decode(),
-               host=options.uuid)
+        p = multiprocessing.Process(target=launch,
+                                    args=(options.collector,
+                                          self.request.body.decode(),
+                                          options.uuid))
+        p.start()
+        logging.info('Launched')
 
         self.write(command)
 
