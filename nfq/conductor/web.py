@@ -218,7 +218,7 @@ class ConfigHandler(web.RequestHandler):
         # Validation and stuff
         # Get the active daemons
         daemons = active_daemons(session)
-        cluster_config = json.loads(file['body'])
+        cluster_config = json.loads(file['body'].decode())
 
         for i, daemon in enumerate(daemons):
             pass
