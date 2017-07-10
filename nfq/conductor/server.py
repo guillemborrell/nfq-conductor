@@ -128,7 +128,7 @@ def make_app():
          {'path': os.path.join(root_path, 'css')}),
         (r'/js/(.*)', web.StaticFileHandler,
          {'path': os.path.join(root_path, 'js')})
-    ], autoreload=True)  # Remove
+    ], autoreload=False)  # Remove
 
 
 def run():
