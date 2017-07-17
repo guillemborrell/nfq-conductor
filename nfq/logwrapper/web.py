@@ -17,7 +17,7 @@
 import json
 from tornado import web
 from datetime import datetime, timedelta
-from nfq.logwrapper.db import logs, session, LogEntry
+from nfq.logwrapper.db import session, LogEntry
 from nfq.logwrapper.config import loader
 
 

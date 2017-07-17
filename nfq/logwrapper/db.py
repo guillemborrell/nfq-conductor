@@ -30,8 +30,7 @@ session = sessionmaker(bind=engine)()
 logging.info('DB connected at {}'.format(options.dbengine))
 Base = declarative_base()
 
-# These two variables are runtime storage for the last logs and ws clients.
-logs = []
+# Cache for clients.
 clients = []
 
 
