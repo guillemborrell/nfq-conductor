@@ -40,6 +40,10 @@
             <input name="command" type="hidden" value="{{ process.command }}">
             <input type="submit" value="Relaunch">
         </form>
+        <form action="/daemon_delete/{{ process.id }}" method="post">
+            <input type="submit" value="Delete">
+        </form>
+
         {% end %}
     </li>
     {% end %}

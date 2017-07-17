@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Last logs{% end %}
+{% block body %}
+<ul>
+    {% if logs %}
+    {% for log in logs %}
+    <li><div style="font-family:monospace;">{{ log.message }}</div></li>
+    {% end %}
+    {% end %}
+</ul>
+{% end %}

@@ -6,6 +6,7 @@
 </head>
 <body>
 <p><a href="/">Home</a></p>
+<p><a href="/conductor">Conductor</a></p>
 {% if daemons %}
 <ul>
     {% for daemon in daemons %}
@@ -13,6 +14,8 @@
       </a>: IP ({{ daemon[0].ip }}) Port ({{daemon[0].port}}) CPU:{{ daemon[1]['user'] }}%</li>
     {% end %}
 </ul>
+{% else %}
+<p>No daemons running.</p>
 {% end %}
 
 <a href="/config">Load configuration file</a>

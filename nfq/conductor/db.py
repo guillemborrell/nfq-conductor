@@ -55,6 +55,7 @@ class Process(Base):
 
     def to_dict(self):
         return {
+            'id': self.id,
             'process': self.process,
             'wrapped': self.wrapped,
             'host': self.host,

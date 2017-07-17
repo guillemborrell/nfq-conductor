@@ -10,16 +10,19 @@ setup(
     author_email="solutions@nfq.es",
     packages=[
         'nfq',
-        'nfq.conductor'
+        'nfq.conductor',
+        'nfq.logwrapper'
         ],
     zip_safe=False,
-    install_requires=['nfq-logwrapper', 'psutil', 'zmq', 'tornado'],
+    install_requires=['psutil', 'zmq', 'tornado', 'sqlalchemy'],
     include_package_data=True,
     setup_requires=[],
     tests_require=[],
     entry_points={
-        'console_scripts': ['nfq-conductor=nfq.conductor.server:run',
-                            'nfq-conductor-daemon=nfq.conductor.daemon:run',
-                            'nfq-conductor-submit=nfq.conductor.submit:run']
+        'console_scripts': [
+            'nfq-runner=nfq.logwrapper.runner:run',
+            'nfq-conductor=nfq.conductor.server:run',
+            'nfq-conductor-daemon=nfq.conductor.daemon:run',
+            'nfq-conductor-submit=nfq.conductor.submit:run']
         }
     )

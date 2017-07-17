@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Logserver{% end %}
+{% block body %}
+
+<h3>Components logging within the last 20 minutes</h3>
+<ul>
+{% for c in components %}
+    <li><a href="/co/{{c}}/20">{{ c }}</a></li>
+{% end %}
+</ul>
+<h3>See last logs:</h3>
+<ul>
+    <li><a href="/last/20">20</a></li>
+    <li><a href="/last/50">50</a></li>
+    <li><a href="/last/100">100</a></li>
+</ul>
+{% end %}

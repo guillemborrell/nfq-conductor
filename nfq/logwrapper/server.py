@@ -1,4 +1,4 @@
-# NFQ Conductor. A tool for centralizing and visualizing logs.
+# NFQ Logwrapper. A tool for centralizing and visualizing logs.
 # Copyright (C) 2017 Guillem Borrell Nogueras
 #
 # This program is free software: you can redistribute it and/or modify
@@ -26,14 +26,11 @@ from zmq.eventloop import ioloop, zmqstream
 from tornado.options import options
 
 from nfq.logwrapper.db import engine, Base, LogEntry, session
-from nfq.conductor.db import Process, Daemon
 # Global variables for cached content. Linters will say it is not used.
 from nfq.logwrapper.db import logs, clients
 from nfq.logwrapper.config import root_path
 from nfq.logwrapper.web import IndexHandler, LastLogsHandler, ComponentHandler
 from nfq.logwrapper.web import RestLastHandler, RestActiveHandler, RestPageHandler
-from nfq.conductor.web import DaemonsHandler, DaemonHandler, ResetHandler
-from nfq.conductor.web import ConfigHandler, DeleteHandler, RelaunchHandler
 from nfq.logwrapper.ws import WSHandler
 
 ioloop.install()
@@ -52,40 +49,6 @@ def process_log(messages):
         )
         session.add(entry)
 
-        sub_message = parsed['message']
-
-        if sub_message.startswith('~~~~'):
-            sub_message = sub_message.strip('~')
-            sub_parsed = json.loads(sub_message)
-
-            process = Process(
-                process=sub_parsed['process'],
-                wrapped=sub_parsed['wrapped'],
-                when=datetime.strptime(parsed['when'], "%Y-%m-%dT%H:%M:%S.%f"),
-                host=sub_parsed['host'],
-                source=parsed['source'],
-                label=sub_parsed['label'],
-                command=sub_parsed['command'],
-                running=True
-            )
-            session.add(process)
-            logging.info('Added process {}'.format(sub_parsed['label']))
-
-        elif sub_message.startswith('^^^^'):
-            sub_message = sub_message.strip('^')
-            logging.info(sub_message)
-            sub_parsed = json.loads(sub_message)
-
-            daemon = Daemon(
-                ip=sub_parsed['ip'],
-                uuid=sub_parsed['uuid'],
-                when=datetime.strptime(parsed['when'], "%Y-%m-%dT%H:%M:%S.%f"),
-                port=sub_parsed['port'],
-                active=True
-            )
-            session.add(daemon)
-            logging.info('Added daemon {}'.format(sub_parsed['uuid']))
-
         # Manage subscriptions
         for client in clients:
             if client.subscription and client.subscription.findall(parsed['message']):
@@ -95,8 +58,8 @@ def process_log(messages):
 
         if len(logs) > 20:
             logs = logs[-20:]
-
-
+    
+        
 def collector(address):
     """
     Process that collects all logs and saves them to a database
@@ -118,19 +81,13 @@ def make_app():
         (r'/api/active_last/([0-9]+)', RestActiveHandler),
         (r'/api/last/([0-9]+)', RestLastHandler),
         (r'/api/page/([0-9]+)/count/([0-9]+)', RestPageHandler),
-        (r'/conductor', DaemonsHandler),
-        (r'/reset', ResetHandler),
-        (r'/config', ConfigHandler),
-        (r'/relaunch/(.+)', RelaunchHandler),
-        (r'/daemon/(.+)', DaemonHandler),
-        (r'/daemon_delete/(.+)', DeleteHandler),
         (r'/(favicon.ico)', web.StaticFileHandler,
          {'path': os.path.join(root_path, 'img', 'favicon.ico')}),
         (r'/css/(.*)', web.StaticFileHandler,
          {'path': os.path.join(root_path, 'css')}),
         (r'/js/(.*)', web.StaticFileHandler,
          {'path': os.path.join(root_path, 'js')})
-    ], autoreload=False)  # Remove
+    ])
 
 
 def run():
@@ -146,7 +103,6 @@ def run():
     )
     logging.info('Starting event loop...')
     ioloop.IOLoop.current().start()
-
 
 if __name__ == '__main__':
     run()

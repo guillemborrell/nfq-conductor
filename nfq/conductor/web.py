@@ -156,6 +156,25 @@ class DaemonHandler(web.RequestHandler):
         )
 
 
+class DeleteHandler(web.RequestHandler):
+    def post(self, job_id):
+        job = session.query(Process).filter(Process.id == job_id).one_or_none()
+
+        if job:
+            session.delete(job)
+            session.commit()
+
+            self.write(loader.load("posted.html").generate(
+                message='Job successfully deleted')
+            )
+            return
+        else:
+            self.write(loader.load("posted.html").generate(
+                message='No such job')
+            )
+            return
+
+
 class ResetHandler(web.RequestHandler):
     def get(self):
         processes = session.query(Process).filter(Process.running)
@@ -184,10 +203,71 @@ class ResetHandler(web.RequestHandler):
         )
 
 
+class RelaunchHandler(web.RequestHandler):
+    def post(self, config_id):
+        config = session.query(
+            Configuration).filter(Configuration.id == config_id).one_or_none()
+
+        if config:
+            # Validation and stuff
+            # Get the active daemons
+            daemons = active_daemons(session)
+            cluster_config = json.loads(config.config)
+
+            for i, daemon in enumerate(daemons):
+                pass
+
+            if daemons:
+                logging.info('{} active daemons'.format(i + 1))
+                if len(cluster_config) > i + 1:
+                    self.write(
+                        loader.load("posted.html").generate(
+                            message=str("Not enough running daemons"))
+                    )
+                    return
+                else:
+                    daemons_mapping = {d.uuid: d for d in daemons}
+
+                    # Map jobs when the daemon is present
+                    for k, v in cluster_config.copy().items():
+                        if k in daemons_mapping:
+                            commands = cluster_config.pop(k)
+                            daemon = daemons_mapping.pop(k)
+
+                            for command in commands:
+                                logging.info('Send {} to {}'.format(command,
+                                                                    daemon.uuid))
+                                _ = post_job(daemon.ip, daemon.port, command)
+
+                    # Otherwise pick random daemon.
+                    for j, d in zip([k for k in cluster_config.keys()],
+                                    [k for k in daemons_mapping.keys()]):
+                        commands = cluster_config.pop(j)
+                        daemon = daemons_mapping.pop(d)
+
+                        for command in commands:
+                            logging.info(
+                                'Send {} to {}'.format(command, daemon.uuid))
+                            _ = post_job(daemon.ip, daemon.port, command)
+
+                    self.write(loader.load("posted.html").generate(
+                        message='Job successfully rescheduled')
+                    )
+                    return
+        else:
+            self.write(loader.load("posted.html").generate(
+                message='No such configuration')
+            )
+            return
+
+
 class ConfigHandler(web.RequestHandler):
     def get(self):
+        available_scripts = session.query(Configuration
+                                          ).order_by(Configuration.when.desc())
         self.write(
-            loader.load("config.html").generate()
+            loader.load("config.html").generate(
+                available_scripts=available_scripts)
         )
 
     def post(self):
@@ -218,7 +298,12 @@ class ConfigHandler(web.RequestHandler):
         # Validation and stuff
         # Get the active daemons
         daemons = active_daemons(session)
-        cluster_config = json.loads(file['body'].decode())
+        try:
+            cluster_config = json.loads(file['body'].decode())
+        except json.decoder.JSONDecodeError:
+            self.write(loader.load("posted.html").generate(
+                message=str("Error parsing the config file")))
+            return
 
         for i, daemon in enumerate(daemons):
             pass
@@ -266,3 +351,4 @@ class ConfigHandler(web.RequestHandler):
         )
 
         return
+

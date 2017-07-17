@@ -5,6 +5,8 @@
     <title>Set up from config file</title>
 </head>
 <body>
+<p><a href="/conductor">Conductor</a></p>
+
 <h3>
     Set up from config file
 </h3>
@@ -12,5 +14,19 @@
     <input name="config_file" type="file">
     <input type="submit" value="Load file">
 </form>
+<h3>Available configuration files</h3>
+{% if available_scripts %}
+<ul>
+{% for script in available_scripts %}
+    <li>{{ script.when }}: {{ script.config [:40] }}...
+        <form action="/relaunch/{{ script.id }}" method="post">
+            <input type="submit" value="Relaunch">
+        </form>
+    </li>
+{% end %}
+</ul>
+{% else %}
+<p>No available launch scripts</p>
+{% end %}
 </body>
 </html>
