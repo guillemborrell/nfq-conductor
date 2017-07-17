@@ -33,7 +33,7 @@ def get_from_daemon(ip, port, call):
     try:
         response = http_client.fetch("http://{}:{}/{}".format(
             ip, port, call
-        ))
+        ), request_timeout=2.0)
         rval = response.body.decode()
     except httpclient.HTTPError as e:
         # HTTPError is raised for non-200 responses; the response
