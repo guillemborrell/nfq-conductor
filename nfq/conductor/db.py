@@ -78,3 +78,11 @@ class Configuration(Base):
             'when': self.when.isoformat(),
             'config': self.config
         }
+
+
+class Subscription(Base):
+    __tablename__ = 'subscriptions'
+
+    id = Column(Integer, primary_key=True)
+    last_stream = Column(DateTime)
+    pattern = Column(String)

@@ -47,6 +47,7 @@ class CpuCountHandler(tornado.web.RequestHandler):
     def get(self):
         self.write(str(psutil.cpu_count()))
 
+
 class UsageHandler(tornado.web.RequestHandler):
     def get(self):
         usage_str = psutil.cpu_times_percent()
