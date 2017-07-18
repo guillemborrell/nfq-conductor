@@ -19,7 +19,7 @@ import logging
 
 from collections import namedtuple
 from tornado import websocket
-from nfq.logwrapper.db import clients, logs
+from nfq.logwrapper.db import clients
 
 
 ClientInfo = namedtuple('ClientInfo', ('client', 'subscription'))

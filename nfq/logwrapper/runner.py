@@ -24,10 +24,13 @@ import socket as unix_socket
 from uuid import uuid4
 
 
-def launch(collector, command, host=None, uid=str(uuid4()), echo=False):
+def launch(collector, command, host=None, uid=None, echo=False):
     context = zmq.Context()
     socket = context.socket(zmq.PUSH)
     socket.connect(collector)
+
+    if uid is None:
+        uid = str(uuid4())
 
     # Make linters happy
     p = None

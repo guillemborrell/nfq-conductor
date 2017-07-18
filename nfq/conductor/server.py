@@ -28,7 +28,7 @@ from tornado.options import options
 from nfq.logwrapper.db import engine, Base, LogEntry, session
 from nfq.conductor.db import Process, Daemon
 # Global variables for cached content. Linters will say it is not used.
-from nfq.logwrapper.db import logs, clients
+from nfq.logwrapper.db import clients
 from nfq.logwrapper.config import root_path
 from nfq.logwrapper.web import IndexHandler, LastLogsHandler, ComponentHandler
 from nfq.logwrapper.web import RestLastHandler, RestActiveHandler, RestPageHandler
@@ -90,11 +90,6 @@ def process_log(messages):
         for client in clients:
             if client.subscription and client.subscription.findall(parsed['message']):
                 client.client.write_message(parsed['message'])
-
-        logs.append(json.loads(message.decode()))
-
-        if len(logs) > 20:
-            logs = logs[-20:]
 
 
 def collector(address):
