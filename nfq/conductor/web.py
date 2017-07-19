@@ -212,7 +212,7 @@ class RelaunchHandler(web.RequestHandler):
             # Validation and stuff
             # Get the active daemons
             daemons = active_daemons(session)
-            cluster_config = json.loads(config.config)
+            cluster_config = json.loads(config.config.decode())
 
             for i, daemon in enumerate(daemons):
                 pass
