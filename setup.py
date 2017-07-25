@@ -13,7 +13,7 @@ setup(
         'nfq.conductor'
         ],
     zip_safe=False,
-    install_requires=['psutil', 'zmq', 'tornado', 'sqlalchemy'],
+    install_requires=['nfq', 'psutil', 'zmq', 'tornado', 'sqlalchemy'],
     include_package_data=True,
     setup_requires=[],
     tests_require=[],
