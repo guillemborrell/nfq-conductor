@@ -1,6 +1,6 @@
 ![](docs/_static/nfq_solutions.png)
 
-# Conductor helps you to orchestrate the processes running in your cluster.
+# Conductor is NFQ solutions' tool for orchestration.
 
 Conductor provides the following tools
 

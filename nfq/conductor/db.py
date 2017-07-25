@@ -16,9 +16,34 @@
 
 # Configuration is loaded at import time. Do not touch this
 
-from nfq.logwrapper.db import Base
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from tornado.options import options
+import logging
 
+engine = create_engine(options.dbengine, echo=options.dbdebug)
+session = sessionmaker(bind=engine)()
+logging.info('DB connected at {}'.format(options.dbengine))
+Base = declarative_base()
+
+# Cache for clients.
+clients = []
+
+
+class LogEntry(Base):
+    __tablename__ = 'log_entries'
+
+    id = Column(Integer, primary_key=True)
+    source = Column(String)
+    when = Column(DateTime)
+    message = Column(Text)
+
+    def to_dict(self):
+        return {'source': self.source,
+                'when': self.when.isoformat(),
+                'message': self.message}
 
 class Daemon(Base):
     __tablename__ = 'daemons'

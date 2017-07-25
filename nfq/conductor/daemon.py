@@ -14,21 +14,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
+import json
+import logging
 import multiprocessing
+import subprocess
+from uuid import uuid4
+
+import psutil
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
 import tornado.web
 import zmq
-import datetime
-import psutil
-import logging
-import subprocess
-import json
-
 from tornado.options import define, options
-from nfq.logwrapper.runner import launch
-from uuid import uuid4
+
+from nfq.conductor.runner import launch
 
 UUID = str(uuid4())
 

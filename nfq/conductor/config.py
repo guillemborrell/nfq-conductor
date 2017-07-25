@@ -26,7 +26,7 @@ define("collector",
        help="TCP address of the collector socket")
 define("dbengine",
        default="sqlite:///:memory:",
-       help="SQLAlchemy connection string")
+       help="SQLAlchemy connection string. Defaults to a volatile sqlite DB.")
 define("dbdebug",
        default=False,
        help="Set to True to see SQLAlchemy logs")

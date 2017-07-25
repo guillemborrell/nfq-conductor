@@ -19,9 +19,12 @@ import os
 import json
 import logging
 import datetime
+from datetime import datetime, timedelta
+
 from tornado import web, template, httpclient
-from nfq.logwrapper.db import session
-from nfq.conductor.db import Daemon, Process, Configuration
+
+from nfq.conductor.config import loader
+from nfq.conductor.db import Daemon, Process, Configuration, session, LogEntry
 from operator import attrgetter
 
 root_path = os.path.abspath(os.path.join(os.path.realpath(__file__), os.path.pardir))
@@ -352,3 +355,82 @@ class ConfigHandler(web.RequestHandler):
 
         return
 
+
+class IndexHandler(web.RequestHandler):
+    def get(self):
+
+        # Get components that have been active within the last 20 minutes:
+        logs20 = session.query(LogEntry).filter(
+            LogEntry.when > datetime.now() - timedelta(minutes=20))
+
+        components = list()
+        for log in logs20:
+            if log.source not in components:
+                components.append(log.source)
+
+        self.write(
+            loader.load("index.html").generate(components=components)
+        )
+
+
+class LastLogsHandler(web.RequestHandler):
+    def get(self, num_entries):
+        num_entries = int(num_entries)
+        fetched = session.query(
+            LogEntry).order_by(
+            LogEntry.when.desc()).limit(num_entries)
+        self.write(
+            loader.load("list.html").generate(
+                logs=reversed([f for f in fetched]))
+        )
+
+
+class ComponentHandler(web.RequestHandler):
+    def get(self, component, num_entries):
+        num_entries = int(num_entries)
+        fetched = session.query(
+            LogEntry).filter(
+            LogEntry.source == component).order_by(
+            LogEntry.when.desc()).limit(num_entries)
+        self.write(
+            loader.load("list.html").generate(
+                logs=reversed([f for f in fetched]))
+        )
+
+
+class RestActiveHandler(web.RequestHandler):
+    def get(self, active_previous_minutes):
+        active_previous_minutes = int(active_previous_minutes)
+
+        # Get components that have been active within the last x minutes:
+        logsx = session.query(LogEntry).filter(
+            LogEntry.when > datetime.now() - timedelta(
+                minutes=active_previous_minutes))
+
+        components = list()
+        for log in logsx:
+            if log.source not in components:
+                components.append(log.source)
+
+        self.write(json.dumps(components))
+
+
+class RestLastHandler(web.RequestHandler):
+    def get(self, num_entries):
+        num_entries = int(num_entries)
+        fetched = session.query(
+            LogEntry).order_by(
+            LogEntry.id.desc()).limit(num_entries)
+
+        self.write(json.dumps([f.to_dict() for f in fetched]))
+
+
+class RestPageHandler(web.RequestHandler):
+    def get(self, fr, count):
+        fr = int(fr)
+        count = int(count)
+
+        last = session.query(LogEntry).order_by(LogEntry.id.desc()).first()
+        last_id = last.id
+
+        self.write(json.dumps(last.to_dict()))

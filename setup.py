@@ -4,14 +4,13 @@ from setuptools import setup
 
 setup(
     name="nfq-conductor",
-    description="NFQ Solutions process manager",
+    description="NFQ Solutions tool for orchestration",
     version="0.2.1",
     author="NFQ Solutions",
     author_email="solutions@nfq.es",
     packages=[
         'nfq',
-        'nfq.conductor',
-        'nfq.logwrapper'
+        'nfq.conductor'
         ],
     zip_safe=False,
     install_requires=['psutil', 'zmq', 'tornado', 'sqlalchemy'],
@@ -20,7 +19,6 @@ setup(
     tests_require=[],
     entry_points={
         'console_scripts': [
-            'nfq-runner=nfq.logwrapper.runner:run',
             'nfq-conductor=nfq.conductor.server:run',
             'nfq-conductor-daemon=nfq.conductor.daemon:run',
             'nfq-conductor-submit=nfq.conductor.submit:run']

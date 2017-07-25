@@ -14,33 +14,31 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import zmq
 import json
 import logging
-
+import os
 from datetime import datetime
-from tornado import web
 from functools import partial
-from zmq.eventloop import ioloop, zmqstream
-from tornado.options import options
 
-from nfq.logwrapper.db import engine, Base, LogEntry, session
-from nfq.conductor.db import Process, Daemon
+import zmq
+from tornado import web
+from tornado.options import options
+from zmq.eventloop import ioloop, zmqstream
+
 # Global variables for cached content. Linters will say it is not used.
-from nfq.logwrapper.db import logs, clients
-from nfq.logwrapper.config import root_path
-from nfq.logwrapper.web import IndexHandler, LastLogsHandler, ComponentHandler
-from nfq.logwrapper.web import RestLastHandler, RestActiveHandler, RestPageHandler
-from nfq.conductor.web import DaemonsHandler, DaemonHandler, ResetHandler
+from nfq.conductor.config import root_path
+from nfq.conductor.db import Process, Daemon
 from nfq.conductor.web import ConfigHandler, DeleteHandler, RelaunchHandler
-from nfq.logwrapper.ws import WSHandler
+from nfq.conductor.web import DaemonsHandler, DaemonHandler, ResetHandler, \
+    IndexHandler, LastLogsHandler, ComponentHandler, RestActiveHandler, \
+    RestLastHandler, RestPageHandler
+from nfq.conductor.ws import WSHandler
+from nfq.conductor.db import engine, Base, LogEntry, session, clients
 
 ioloop.install()
 
 
 def process_log(messages):
-    global logs
     global clients
 
     for message in messages:
@@ -90,11 +88,6 @@ def process_log(messages):
         for client in clients:
             if client.subscription and client.subscription.findall(parsed['message']):
                 client.client.write_message(parsed['message'])
-
-        logs.append(json.loads(message.decode()))
-
-        if len(logs) > 20:
-            logs = logs[-20:]
 
 
 def collector(address):
