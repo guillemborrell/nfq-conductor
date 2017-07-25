@@ -292,7 +292,7 @@ class ConfigHandler(web.RequestHandler):
         logging.info('Got configuration file')
 
         config = Configuration(
-            when=datetime.datetime.now(),
+            when=datetime.now(),
             config=file['body']
         )
 
