@@ -237,10 +237,13 @@ class RelaunchHandler(web.RequestHandler):
                             commands = cluster_config.pop(k)
                             daemon = daemons_mapping.pop(k)
 
-                            for command in commands:
+                            for uid, command in commands.items():
                                 logging.info('Send {} to {}'.format(command,
                                                                     daemon.uuid))
-                                _ = post_job(daemon.ip, daemon.port, command)
+                                _ = post_job(daemon.ip,
+                                             daemon.port,
+                                             json.dumps([uid, command])
+                                             )
 
                     # Otherwise pick random daemon.
                     for j, d in zip([k for k in cluster_config.keys()],
@@ -248,10 +251,13 @@ class RelaunchHandler(web.RequestHandler):
                         commands = cluster_config.pop(j)
                         daemon = daemons_mapping.pop(d)
 
-                        for command in commands:
+                        for uid, command in commands.items():
                             logging.info(
                                 'Send {} to {}'.format(command, daemon.uuid))
-                            _ = post_job(daemon.ip, daemon.port, command)
+                            _ = post_job(daemon.ip,
+                                         daemon.port,
+                                         json.dumps([uid, command])
+                                         )
 
                     self.write(loader.load("posted.html").generate(
                         message='Job successfully rescheduled')
@@ -335,9 +341,12 @@ class ConfigHandler(web.RequestHandler):
                 commands = cluster_config.pop(k)
                 daemon = daemons_mapping.pop(k)
 
-                for command in commands:
+                for uid, command in commands.items():
                     logging.info('Send {} to {}'.format(command, daemon.uuid))
-                    _ = post_job(daemon.ip, daemon.port, command)
+                    _ = post_job(daemon.ip,
+                                 daemon.port,
+                                 json.dumps([uid, command])
+                                 )
 
         # Otherwise pick random daemon.
         for j, d in zip([k for k in cluster_config.keys()],
@@ -345,9 +354,12 @@ class ConfigHandler(web.RequestHandler):
             commands = cluster_config.pop(j)
             daemon = daemons_mapping.pop(d)
 
-            for command in commands:
+            for uid, command in commands.items():
                 logging.info('Send {} to {}'.format(command, daemon.uuid))
-                _ = post_job(daemon.ip, daemon.port, command)
+                _ = post_job(daemon.ip,
+                             daemon.port,
+                             json.dumps([uid, command])
+                             )
 
         self.write(
             loader.load("posted.html").generate(message='Successful')
@@ -420,6 +432,17 @@ class RestLastHandler(web.RequestHandler):
         num_entries = int(num_entries)
         fetched = session.query(
             LogEntry).order_by(
+            LogEntry.id.desc()).limit(num_entries)
+
+        self.write(json.dumps([f.to_dict() for f in fetched]))
+
+
+class RestCoLastHandler(web.RequestHandler):
+    def get(self, co, num_entries):
+        num_entries = int(num_entries)
+        fetched = session.query(
+            LogEntry).filter(
+            LogEntry.source == co).order_by(
             LogEntry.id.desc()).limit(num_entries)
 
         self.write(json.dumps([f.to_dict() for f in fetched]))

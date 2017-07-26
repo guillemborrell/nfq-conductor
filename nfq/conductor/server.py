@@ -31,7 +31,7 @@ from nfq.conductor.db import Process, Daemon
 from nfq.conductor.web import ConfigHandler, DeleteHandler, RelaunchHandler
 from nfq.conductor.web import DaemonsHandler, DaemonHandler, ResetHandler, \
     IndexHandler, LastLogsHandler, ComponentHandler, RestActiveHandler, \
-    RestLastHandler, RestPageHandler
+    RestLastHandler, RestPageHandler, RestCoLastHandler
 from nfq.conductor.ws import WSHandler
 from nfq.conductor.db import engine, Base, LogEntry, session, clients
 
@@ -109,6 +109,7 @@ def make_app():
         (r'/last/([0-9]+)', LastLogsHandler),
         (r'/co/(.+)/([0-9]+)', ComponentHandler),
         (r'/api/active_last/([0-9]+)', RestActiveHandler),
+        (r'/api/last/co/(.+)/([0-9]+)', RestCoLastHandler),
         (r'/api/last/([0-9]+)', RestLastHandler),
         (r'/api/page/([0-9]+)/count/([0-9]+)', RestPageHandler),
         (r'/conductor', DaemonsHandler),

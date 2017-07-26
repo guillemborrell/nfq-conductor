@@ -1,2 +1,5 @@
-{"#1": ["ping www.google.com"],
- "#2": ["ping www.google.com"]}
+{"#1":
+{
+ "ping1": "ping www.google.com",
+ "ping2": "ping www.google.com"}
+}

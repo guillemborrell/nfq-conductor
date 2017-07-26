@@ -74,10 +74,13 @@ class ProcessHandler(tornado.web.RequestHandler):
             options.uuid
         )
         logging.info(command)
+        name, command = json.loads(self.request.body.decode())
         p = multiprocessing.Process(target=launch,
                                     args=(options.collector,
-                                          self.request.body.decode(),
-                                          options.uuid))
+                                          command,
+                                          options.uuid,
+                                          name)
+                                    )
         p.start()
         logging.info('Launched')
 
