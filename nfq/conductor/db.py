@@ -45,6 +45,7 @@ class LogEntry(Base):
                 'when': self.when.isoformat(),
                 'message': self.message}
 
+
 class Daemon(Base):
     __tablename__ = 'daemons'
 

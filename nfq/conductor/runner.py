@@ -1,4 +1,4 @@
-# NFQ Logwrapper. A tool for centralizing and visualizing logs.
+# NFQ Conductor. A tool for centralizing and visualizing logs.
 # Copyright (C) 2017 Guillem Borrell Nogueras
 #
 # This program is free software: you can redistribute it and/or modify
