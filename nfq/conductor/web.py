@@ -146,7 +146,10 @@ class DaemonHandler(web.RequestHandler):
             logging.info('Posting job {}'.format(self.get_argument('command')))
             response = post_job(self.get_argument('ip'),
                                 self.get_argument('port'),
-                                self.get_argument('command'))
+                                json.dumps([
+                                    self.get_argument('name'),
+                                    self.get_argument('command')]
+                                ))
 
         elif self.get_argument('pid', default=None):
             logging.info('Killing pid {}'.format(self.get_argument('pid')))

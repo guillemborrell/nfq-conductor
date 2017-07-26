@@ -16,7 +16,8 @@
 <form action="/daemon/{{ daemon.uuid }}" method="post">
     <input name="ip" type="hidden" value="{{ daemon.ip }}">
     <input name="port" type="hidden" value="{{ daemon.port }}">
-    <input name="command" type="text">
+    ID: <input name="name" type="text">
+    Command: <input name="command" type="text">
     <input type="submit" value="Send">
 </form>
 
