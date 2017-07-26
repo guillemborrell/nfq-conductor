@@ -5,7 +5,7 @@ from setuptools import setup
 setup(
     name="nfq-conductor",
     description="NFQ Solutions tool for orchestration",
-    version="0.2.1",
+    version="0.3",
     author="NFQ Solutions",
     author_email="solutions@nfq.es",
     packages=[
