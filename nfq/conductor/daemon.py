@@ -34,8 +34,13 @@ from nfq.conductor.runner import launch
 UUID = str(uuid4())
 
 define("port", default=8999, help="run on the given port", type=int)
-define("interface", default='lo', help="network interface for collector connection", type=str)
-define("collector", default='tcp://127.0.0.1:5555', help="Collector socket address", type=str)
+define("interface", default='lo',
+       help="network interface for collector connection", type=str)
+define("collector", default='tcp://127.0.0.1:5555',
+       help="Collector socket address", type=str)
+define("ip", default='',
+       help="Ip from which the http service can be accesed. Key"
+            "if you want to put the daemon within a container.", type=str)
 define("uuid", default=UUID, help="Unique ID for the daemon", type=str)
 
 
@@ -103,7 +108,10 @@ def run():
     tornado.options.parse_command_line()
 
     # Fetch network information
-    ip = psutil.net_if_addrs()[options.interface][0].address
+    if options.ip:
+        ip = options.ip
+    else:
+        ip = psutil.net_if_addrs()[options.interface][0].address
 
     context = zmq.Context()
     socket = context.socket(zmq.PUSH)
@@ -112,7 +120,8 @@ def run():
     socket.connect(options.collector)
     
     logging.info('Addr: {}:{}'.format(str(ip), str(options.port)))
-
+    logging.info('Trying to send configuration to collector: {}'.format(
+        options.collector))
     logging.info('Preparing configuration message...')
     socket.send_json({
         'source': options.uuid,
@@ -124,7 +133,7 @@ def run():
 
     socket.close()
     context.destroy()
-    logging.info('Sent configuration message')
+    logging.info('Configuration message sent.')
     logging.info('{{"ip": "{}", "port": {}, "uuid": "{}" }}'.format(
             ip, options.port, options.uuid
         ))
