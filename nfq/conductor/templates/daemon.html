@@ -38,6 +38,7 @@
         <form action="/daemon/{{ daemon.uuid }}" method="post">
             <input name="ip" type="hidden" value="{{ daemon.ip }}">
             <input name="port" type="hidden" value="{{ daemon.port }}">
+            <input name="name" type="hidden" value="{{ process.label }}">
             <input name="command" type="hidden" value="{{ process.command }}">
             <input type="submit" value="Relaunch">
         </form>
